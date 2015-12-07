@@ -9,7 +9,7 @@ import org.apache.avro.Schema.Type._
 
 import scala.collection.JavaConverters._
 
-object FileParser {
+object FileParser extends Parser {
 
   def getSchemas(infile: java.io.File): List[Schema] = {
     val schema = infile.getName.split("\\.").last match {
@@ -18,18 +18,29 @@ object FileParser {
         val dfr = new DataFileReader(infile, gdr)
         dfr.getSchema
       case "avsc" =>
-        new Parser().parse(infile)
+        this.parse(infile)
       case _ => throw new Exception("Invalid file ending. Must be .avsc for plain text json files and .avro for binary files.")
     }
+    getDefinition(schema)
+  }
+
+  def getDefinition(schema: Schema): List[Schema] = {
     schema.getType match {
       case UNION  => {
         val recordSchemas = schema.getTypes.asScala.toList.filter(_.getType == RECORD)
         if (recordSchemas.nonEmpty) recordSchemas
-        else sys.error("no record type found in the union from " + infile)
+        else sys.error("no record type found in the union from " + schema.getFullName)
       }
       case RECORD => List(schema)
       case _      => sys.error("The Schema in the datafile is neither a record nor a union of a record type, nothing to map to case class.")
     }
   }
 
+  def getDefinitionByName(fullName: String): List[Schema] = {
+    if (this.getTypes.containsKey(fullName)) {
+      getDefinition(this.getTypes.get(fullName))
+    }  else {
+      sys.error("The schema name provided has not been defined")
+    }
+  }
 }

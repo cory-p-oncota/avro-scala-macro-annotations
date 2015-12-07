@@ -11,7 +11,7 @@ class AvroTypeProviderNestedSeparateSchemaFilesTest extends Specification {
 
   "A case class with types provided from two separate .avsc files" should {
     "serialize and deserialize correctly" in {
-      val record = SeparteTestMessage("Achilles", SeparateMetaData("ow", "12345"))
+      val record = SeparateTestMessage("Achilles", SeparateMetaData("ow", "12345"))
       TestUtil.verifyWriteAndRead(record)
     }
   }

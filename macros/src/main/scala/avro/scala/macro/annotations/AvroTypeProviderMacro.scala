@@ -13,6 +13,8 @@ import com.typesafe.scalalogging._
 
 object AvroTypeProviderMacro extends LazyLogging {
 
+  var parsedFiles: Vector[String] = Vector.empty[String]
+
   def impl(c: Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
     import Flag._
@@ -38,11 +40,19 @@ object AvroTypeProviderMacro extends LazyLogging {
           // helpful for IDE users who may not be able to easily see where their files live
           logger.info(s"Current path: ${new File(".").getAbsolutePath}")
 
-          // get the schema for the record that this class represents
           val avroFilePath = FilePathProbe.getPath(c)
-          val infile = new File(avroFilePath)
-          val fileSchemas = FileParser.getSchemas(infile)
-          val nestedSchemas = fileSchemas.flatMap(NestedSchemaExtractor.getNestedSchemas)
+          println("file: " + avroFilePath)
+          // get the schema for the record that this class represents
+          val nestedSchemas = if (!parsedFiles.contains(avroFilePath)) {
+            println("creating from file: " + avroFilePath)
+            val infile = new File(avroFilePath)
+            val fileSchemas = FileParser.getSchemas(infile)
+            parsedFiles = parsedFiles :+ avroFilePath
+            fileSchemas.flatMap(NestedSchemaExtractor.getNestedSchemas)
+          } else {
+            println("reusing file: " + avroFilePath)
+            FileParser.getDefinitionByName(fullName)
+          }
           // first try matching schema record full name to class full name, then by the
           // regular name in case we're trying to read from a non-namespaced schema
           val classSchema = nestedSchemas.find(s => s.getFullName == fullName)

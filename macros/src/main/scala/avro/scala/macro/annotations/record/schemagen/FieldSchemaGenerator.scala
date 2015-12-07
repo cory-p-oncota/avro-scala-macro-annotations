@@ -2,6 +2,8 @@ package com.julianpeeters.avro.annotations
 package record
 package schemagen
 
+import com.julianpeeters.avro.annotations.provider.FileParser
+
 import scala.reflect.macros.blackbox.Context
 
 import collection.JavaConversions._
@@ -53,7 +55,8 @@ abstract class FieldSchemaGenerator {
         // if a case class (a nested record) is found, reuse the schema that was made and stored when its macro was expanded.
         // unsuccessful alternatives: reflectively getting the schema from its companion (can't get a tree from a Symbol),
         // or regenerating the schema (no way to get default param values from outside the current at compile time).
-        SchemaStore.schemas(x.toString)
+        println(x.toString)
+        FileParser.getTypes.get(x.toString)
       }
       case x => throw new UnsupportedOperationException("Could not generate schema. Cannot support yet: " + x )
     }

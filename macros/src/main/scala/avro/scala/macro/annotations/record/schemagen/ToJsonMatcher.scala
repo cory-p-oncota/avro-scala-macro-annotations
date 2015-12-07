@@ -2,6 +2,8 @@ package com.julianpeeters.avro.annotations
 package record
 package schemagen
 
+import com.julianpeeters.avro.annotations.provider.FileParser
+
 import scala.reflect.macros.blackbox.Context
 
 import org.codehaus.jackson.JsonNode
@@ -48,12 +50,12 @@ abstract class ToJsonMatcher {
             jsonObject
           }
           // if the default value is another (i.e. nested) record/case class
-          case Apply(Ident(TermName(name)), xs) if SchemaStore.schemas.contains(ns + "." + name) => {
+          case Apply(Ident(TermName(name)), xs) if FileParser.getTypes.contains(ns + "." + name) => {
             val jsonObject = jsonNodeFactory.objectNode
             xs.zipWithIndex.map( x => {
               val value = x._1
               val index = x._2
-              val nestedRecordField = SchemaStore.schemas(ns + "." + name).getFields()(index)
+              val nestedRecordField = FileParser.getTypes.get(ns + "." + name).getFields()(index)
               // values from the tree, field names from cross referencing tree's pos with schema field pos
               // (they always correspond since the schema is defined based on the fields in a class def)
               jsonObject.put(nestedRecordField.name, toJsonNode(value))

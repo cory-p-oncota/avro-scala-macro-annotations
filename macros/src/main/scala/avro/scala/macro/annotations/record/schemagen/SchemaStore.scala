@@ -8,7 +8,6 @@ import collection.JavaConversions._
 import org.apache.avro.Schema
 
 object SchemaStore {
-
   val schemas: scala.collection.concurrent.Map[String, Schema] = scala.collection.convert.Wrappers.JConcurrentMapWrapper(new ConcurrentHashMap[String, Schema]())
 
   def accept(schema: Schema) {
